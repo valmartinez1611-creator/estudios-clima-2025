@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificador de Estudios Climáticos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #1f2937;
+            font-size: 2.5em;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #1f2937;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        h3 {
+            color: #374151;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+        p, ul {
+            line-height: 1.6;
+            color: #4b5563;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            background: #f9fafb;
+        }
+        .option {
+            display: block;
+            margin: 8px 0;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .option:hover:not(.correct):not(.wrong):not(.selected) {
+            background: #e5e7eb;
+        }
+        .option.correct {
+            background: #10b981 !important;
+            color: white;
+        }
+        .option.wrong {
+            background: #ef4444 !important;
+            color: white;
+        }
+        .option.selected {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+        }
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .correct-feedback {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .wrong-feedback {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        button {
+            padding: 10px 20px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background: #f3f4f6;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .check-btn {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .check-btn:hover {
+            background: #2563eb;
+        }
+        .retry-btn {
+            background: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+        .rest-day {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .summary {
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Planificador de Estudios Climáticos</h1>
+        <p id="dayInfo">Día 1 de 29</p>
+    </header>
+
+    <div class="nav-tabs" id="navTabs" style="display: none;">
+        <button class="tab-button active" onclick="switchTab('contenido')">Contenido</button>
+        <button class="tab-button" onclick="switchTab('resumen')">Resumen Teórico</button>
+    </div>
+
+    <div id="contentArea"></div>
+
+    <div class="navigation">
+        <button onclick="previousDay()" id="prevBtn">Día anterior</button>
+        <button onclick="nextDay()" id="nextBtn">Día siguiente</button>
+    </div>
+
+    <script>
+        // Datos de los 15 módulos (todo en español, completo)
+        const modules = [
+            {
+                title: "Módulo 1: Sistema Tierra",
+                synopsis: "Definición de clima. Clima y sociedad. El Sistema Climático/Sistema Tierra. Interacciones de los subsistemas. La atmósfera como disciplina científica.",
+                imageDesc: "Diagrama del sistema Tierra mostrando atmósfera, hidrosfera, litosfera y biosfera.",
+                examples: ["El clima afecta la agricultura y la vida cotidiana.", "La atmósfera es un subsistema clave para el clima."],
+                questions: [
+                    { question: "¿Qué estudia el sistema Tierra?", options: ["Solo la atmósfera", "Interacciones entre subsistemas", "Solo el clima", "Solo la hidrosfera"], correctAnswer: "Interacciones entre subsistemas" },
+                    { question: "¿Qué disciplina estudia la atmósfera?", options: ["Geología", "Meteorología", "Biología", "Química"], correctAnswer: "Meteorología" }
+                ],
+                fullTheory: "El clima es el conjunto de condiciones atmosféricas promedio en un lugar durante un período prolongado. La sociedad depende del clima para actividades como agricultura, salud y economía. El sistema climático o sistema Tierra está compuesto por varios subsistemas interrelacionados: atmósfera, hidrosfera, litosfera, criosfera y biosfera. La atmósfera es la capa gaseosa que rodea la Tierra y es objeto de estudio científico para entender procesos climáticos y meteorológicos."
+            },
+            {
+                title: "Módulo 2: Monitoreo del sistema climático terrestre",
+                synopsis: "Escalas espaciales del clima. Variabilidad climática y cambio climático. Observaciones en el sistema climático. Cooperación internacional en el estudio y la comprensión del sistema climático. Modelando el sistema climático terrestre.",
+                imageDesc: "Mapa global con estaciones de monitoreo climático.",
+                examples: ["Satélites miden variables atmosféricas.", "Modelos climáticos predicen cambios futuros."],
+                questions: [
+                    { question: "¿Qué mide un satélite climático?", options: ["Temperatura y humedad", "Solo temperatura", "Solo presión atmosférica", "Ninguna de las anteriores"], correctAnswer: "Temperatura y humedad" },
+                    { question: "¿Qué es la variabilidad climática?", options: ["Cambios a corto plazo en el clima", "Cambios permanentes en el clima", "Fenómenos meteorológicos", "Ninguna de las anteriores"], correctAnswer: "Cambios a corto plazo en el clima" }
+                ],
+                fullTheory: "El clima se estudia en diferentes escalas espaciales y temporales. La variabilidad climática se refiere a las fluctuaciones naturales del clima, mientras que el cambio climático implica alteraciones a largo plazo. Las observaciones se realizan mediante estaciones meteorológicas, satélites y boyas oceánicas. La cooperación internacional es fundamental para compartir datos y mejorar modelos climáticos que simulan el comportamiento del sistema climático terrestre."
+            },
+            {
+                title: "Módulo 3: Balance de energía del sistema climático terrestre",
+                synopsis: "Formas de radiación electromagnética, leyes de la radiación, radiación solar entrante, atmósfera y radiación solar, capa de ozono, balance radiativo global y cambio climático.",
+                imageDesc: "Espectro electromagnético y balance radiativo terrestre.",
+                examples: ["La radiación solar es la principal fuente de energía para el clima.", "La capa de ozono protege de la radiación ultravioleta."],
+                questions: [
+                    { question: "¿Qué tipo de radiación emite el sol principalmente?", options: ["Radiación infrarroja", "Radiación ultravioleta", "Radiación visible", "Radiación electromagnética en general"], correctAnswer: "Radiación electromagnética en general" },
+                    { question: "¿Cuál es la función principal de la capa de ozono?", options: ["Absorber radiación infrarroja", "Proteger de radiación ultravioleta", "Regular la temperatura terrestre", "Emitir radiación solar"], correctAnswer: "Proteger de radiación ultravioleta" }
+                ],
+                fullTheory: "La radiación electromagnética es la energía que emite el sol y que llega a la Tierra en diferentes formas (visible, ultravioleta, infrarroja). Las leyes de la radiación describen cómo esta energía se absorbe, refleja y emite. La capa de ozono estratosférico protege la vida al absorber la radiación ultravioleta dañina. El balance radiativo global es el equilibrio entre la energía solar entrante y la radiación infrarroja saliente, fundamental para mantener la temperatura del planeta y entender el cambio climático."
+            },
+            {
+                title: "Módulo 4: Respuesta térmica del sistema climático",
+                synopsis: "Diferencias entre temperatura y calor, transferencia de calor, respuesta térmica, balance de calor en atmósfera y superficie, control de temperatura.",
+                imageDesc: "Diagrama de transferencia de calor en la atmósfera y superficie.",
+                examples: ["El calor específico determina cuánto calor se necesita para cambiar la temperatura.", "Los trópicos reciben más energía solar que las latitudes altas."],
+                questions: [
+                    { question: "¿Qué es el calor específico?", options: ["La cantidad de calor necesaria para
